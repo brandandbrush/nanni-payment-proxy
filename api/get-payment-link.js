@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   try {
     const filter = encodeURIComponent(`{Family Email} = "${email}"`);
-    const url = `https://api.airtable.com/v0/appEjf5vskmYJy4kg/Bookings?filterByFormula=${filter}&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=1`;
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}?filterByFormula=${filter}&maxRecords=1`;
 
     const response = await fetch(url, {
       headers: {
