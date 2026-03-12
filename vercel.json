@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "functions": {
+    "api/get-payment-link.js": {
+      "runtime": "edge"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://portal.professionalnannieshawaii.com"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
+    }
+  ]
+}
