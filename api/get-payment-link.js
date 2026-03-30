@@ -5,25 +5,21 @@ export default async function handler(req, res) {
 
   const BASE_ID      = 'appEjf5vskmYJy4kg';
   const TABLE_NAME   = 'Bookings';
-  const EMAIL_FIELD  = 'Family Email';
   const STRIPE_FIELD = 'Stripe URL';
 
-  const { email: rawEmail } = req.query;
+  const { record_id: recordId } = req.query;
 
-  if (!rawEmail) {
-    return res.status(400).json({ error: 'Email is required' });
+  if (!recordId) {
+    return res.status(400).json({ error: 'record_id is required' });
   }
 
-  const email = decodeURIComponent(rawEmail);
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+  // Airtable record IDs always start with 'rec' and are 17 chars
+  if (!/^rec[a-zA-Z0-9]{14}$/.test(recordId)) {
+    return res.status(400).json({ error: 'Invalid record_id format' });
   }
 
   try {
-    const filter = encodeURIComponent(`{${EMAIL_FIELD}} = "${email}"`);
-    const url    = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}?filterByFormula=${filter}&maxRecords=1`;
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}/${recordId}`;
 
     const response = await fetch(url, {
       headers: {
@@ -32,14 +28,17 @@ export default async function handler(req, res) {
       },
     });
 
+    if (response.status === 404) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
     if (!response.ok) {
       const errText = await response.text();
       console.error('Airtable error:', response.status, errText);
       return res.status(502).json({ error: 'Failed to reach Airtable', details: errText });
     }
 
-    const data      = await response.json();
-    const record    = data.records?.[0];
+    const record    = await response.json();
     const stripeUrl = record?.fields?.[STRIPE_FIELD] || null;
 
     return res.status(200).json({ stripeUrl });
